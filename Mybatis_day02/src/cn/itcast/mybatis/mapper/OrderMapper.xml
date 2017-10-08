@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.itcast.mybatis.mapper.OrderMapper">
+	<!-- 查询订单中所有的数据 -->
+	<!-- <select id="queryOrderAll" resultType="orDEr">
+		<![CDATA[select id,user_id,number,createtime,note from orders]]>
+	</select> -->
+	
+	<!--  
+		resultMap最终还是要将结果映射到pojo上
+		type;就是指定映射到哪一个pojo
+	
+	-->
+	  
+	<!-- <resultMap type="order" id="orderResultMap"> -->
+		<!-- 
+			定义主键 ，,非常重要。如果是多个字段,则定义多个id 
+			column;主键在数据库中的列名
+			property;主键在pojo中对应的字段名
+		-->
+		<!-- <id column="id" property="id"/> -->
+		<!-- 定义普通属性 -->
+		<!-- <result column="user_id" property="userId"/>
+		<result column="number" property="number"/>
+		<result column="createtime" property="createtime"/>
+		<result column="note" property="note"/> -->
+		<!-- 
+			注意：当单表查询的时候，POJO属性名和表的字段名一样的时候，可以不用手动映射。：
+		 -->
+	<!-- </resultMap> -->
+	
+	<select id="queryOrderAll" resultType="orDEr" resultMap="orderResultMap">
+		<![CDATA[select id,user_id,number,createtime,note from orders]]>
+	</select>
+	
+	<!-- 一对一映射的resultMap配置 主要是从orders表角度来考虑 -->
+	<resultMap type="order" id="orderUserResultMap">
+		<id column="id" property="id"/>
+		<!-- 如果是多表关联查询的时候，即使是POJO属性名和表的字段名一样，也要手动一一配置映射 -->
+		<result column="user_id" property="userId"/>
+		<result column="number" property="number"/>
+		<result column="createtime" property="createtime"/>
+		<result column="note" property="note"/>
+		<!-- 配置和其他表关联的属性 -->
+		<!-- 
+			association;配置一对一属性
+			property;Order实体中User属性名
+			javaType;属性类型，由于在核心配置文件中起了别名，所以在引用类型的时候可以不区分大小写
+		 -->
+		<association property="user" javaType="cn.itcast.mybatis.pojo.User">
+			<!--
+				主键声明；表示user_id是关联查询对象的唯一标识 
+			 -->
+			<id property="id" column="user_id"/>
+			<result property="address" column="address"/>
+			<result property="username" column="username"/>
+		</association>
+	</resultMap>
+	
+	<!-- 一对一关联查询，查询订单表信息，其中包含的user表的信息 -->
+	<select id="queryOrderUserResultMap" resultMap="orderUserResultMap">
+		<![CDATA[
+			SELECT
+				o.id,
+				o.user_id,
+				o.number,
+				o.createtime,
+				o.note,
+				u.username,
+				u.address
+			FROM
+				`orders` o
+			LEFT JOIN `user` u ON o.user_id = u.id			
+		]]>
+	</select> 
+	
+</mapper>

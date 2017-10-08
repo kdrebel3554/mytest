@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace和mapper接口的Qualifier name要一致 -->
+<mapper namespace="cn.itcast.mybatis.mapper.UserMapper">
+	<!-- 
+		id必须和mapper接口中的方法名称一致
+		parameterType类型必须和接口中的方法参数类型一致
+		resultType类型必须和接口中方法返回值类型一致
+	 -->
+	<select id="queryUserById" parameterType="int" resultType="cn.itcast.mybatis.pojo.User">
+		select * from user where id = #{id}
+	</select>
+	
+	<!-- 根据用户名查询用户 -->
+	<select id="queryUserByUsername" parameterType="string"
+		resultType="cn.itcast.mybatis.pojo.User">
+		select * from user where username like '%${value}%'
+	</select>
+	
+	<!-- 保存用户 -->
+	<insert id="saveUser" parameterType="cn.itcast.mybatis.pojo.User">
+		<selectKey keyProperty="id" keyColumn="id" order="AFTER" resultType="int">
+			select last_insert_id()
+		</selectKey>
+		insert into user(username,birthday,sex,address) values
+		(#{username},#{birthday},#{sex},#{address});
+	</insert>
+	
+</mapper>

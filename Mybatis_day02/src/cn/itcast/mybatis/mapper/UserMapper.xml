@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace和mapper接口的Qualifier name要一致 -->
+<mapper namespace="cn.itcast.mybatis.mapper.UserMapper">
+	<!-- 
+		id必须和mapper接口中的方法名称一致
+		parameterType类型必须和接口中的方法参数类型一致
+		resultType类型必须和接口中方法返回值类型一致
+	 -->
+	<select id="queryUserById" parameterType="int" resultType="cn.itcast.mybatis.pojo.User">
+		select * from user where id = #{id}
+	</select>
+	
+	<!-- 根据用户名查询用户 -->
+	<select id="queryUserByUsername" parameterType="string"
+		resultType="cn.itcast.mybatis.pojo.User">
+		select * from user where username like '%${value}%'
+	</select>
+	
+	<!-- 保存用户 -->
+	<insert id="saveUser" parameterType="cn.itcast.mybatis.pojo.User">
+		<selectKey keyProperty="id" keyColumn="id" order="AFTER" resultType="int">
+			select last_insert_id()
+		</selectKey>
+		insert into user(username,birthday,sex,address) values
+		(#{username},#{birthday},#{sex},#{address});
+	</insert>
+	
+	<!-- 使用包装类型查询用户信息 -->
+	<!-- mybatis的核心配置文件中配置了别名，在当前的映射文件中就可以使用设置的别名了，别名不区分大小写 -->
+	<select id="queryByUserQueryVo" parameterType="queryVo" resultType="uSEr">
+		<![CDATA[select * from user where username like '%${user.username}%']]>
+	</select>
+	
+	<!-- 
+		输出类型为：简单类型
+		查询用户表数据条数 —— int
+	-->
+	<select id="queryUserCount" resultType="int">
+		<![CDATA[select count(*) from user]]>
+	</select>
+	
+	<!-- 
+		需求：根据性别和名字查询用户
+		SELECT id, username, birthday, sex, address FROM `user` WHERE sex = 1 AND username LIKE '%张%'
+	-->
+	<select id="queryUserByWhere" parameterType="user" resultType="user">
+		SELECT id, username, birthday, sex, address FROM `user` WHERE sex = #{sex} AND username LIKE '%${username}%'
+	</select>
+	
+	<!-- 使用if标签 -->
+	<select id="queryUserByCondition" parameterType="user" resultType="user">
+		<!-- 
+			继续改造，将where 1=1 这样的判断标签给去掉，所以就要使用where标签了
+		-->
+		<!-- SELECT id, username, birthday, sex, address FROM `user` WHERE 1=1 -->
+		
+		
+		<!-- 
+			if标签的属性
+				test;
+			注意：字符串类型的数据需要要做不等于空字符串校验
+		 -->
+		<if test="sex != null and sex != ''">
+			AND sex = #{sex}
+		</if>
+		
+		<if test="username != null and username != ''">
+			AND username LIKE '%${username}%'
+		</if>
+	</select>
+	
+	<select id="queryUserByConditionWhereTag" parameterType="user" resultType="user">
+		SELECT id, username, birthday, sex, address FROM `user`
+		<!-- where标签可以自动添加where，同时处理sql语句中第一个and关键字;会去掉where关键字后面的第一个and -->
+		<where>
+			<if test="sex != null and sex != ''">
+				AND sex = #{sex}	<!-- 此时AND关键字，会被where标签自动处理掉，不会影响查询的 -->
+			</if>
+		
+			<if test="username != null and username != ''">
+				AND username LIKE '%${username}%'
+			</if>
+		</where>
+	</select>
+	
+	<!--
+		sql片段；Sql中可将重复的sql提取出来，使用时用include引用即可，最终达到sql重用的目的。 
+	 --> 
+	<!-- 声明SQL片段 -->
+	<sql id="userFields">
+		id, username, birthday, sex, address
+	</sql>
+	
+	<select id="queryUserByConditionSqlSnippet" parameterType="user" resultType="user">
+		<!-- include标签加载SQL片段 -->
+		SELECT <include refid="userFields"/> FROM `user`
+		<!-- where标签可以自动添加where，同时处理sql语句中第一个and关键字;会去掉where关键字后面的第一个and -->
+		<where>
+			<if test="sex != null and sex != ''">
+				AND sex = #{sex}	<!-- 此时AND关键字，会被where标签自动处理掉，不会影响查询的 -->
+			</if>
+		
+			<if test="username != null and username != ''">
+				AND username LIKE '%${username}%'
+			</if>
+		</where>
+	</select>
+	
+	<!-- 
+		foreach标签；向SQL语句传递【数组】或者【list集合】，Mybatis框架使用foreach来解析
+		根据多个id查询用户信息
+		查询sql：
+			SELECT * FROM user WHERE id IN (1,10,12,13)
+	 -->
+	 <select id="queryUserByIds" parameterType="queryVo" resultType="user">
+	 	SELECT * FROM user 
+	 	<where>
+	 		<!-- 
+	 			foreach标签进行遍历
+	 				属性
+	 				collection;遍历的集合，这里是QueryVo中的ids
+	 				item：遍历的项目，可以随便写，，但是和后面的#{}里面要一致
+	 				open;在前面加的sql片段
+	 				close;在后面加的sql片段
+	 				separator;指定遍历的元素之间使用的分隔符
+	 		 -->
+	 		 <foreach collection="ids" item="item" open="id IN (" close=")" separator=",">
+	 		 	#{item}
+	 		 </foreach>
+	 	</where>
+	 </select>
+	 
+	 <!-- 一对一关联，查询订单的时候同时包含用户表的信息 -->
+	<select id="queryOrderUser" resultType="orderUser">
+		<![CDATA[
+			SELECT o.id,o.user_id,o.number,o.note,o.createtime,u.username,u.address 
+			FROM orders AS o 
+			LEFT OUTER JOIN user AS u 
+			ON o.user_id = u.id; 
+		]]>
+	</select>
+	 
+	 <!-- 一对多关系映射 -->
+	<resultMap type="user" id="userOrderResultMap">
+		<id property="id" column="id"/>
+		<result property="username" column="username" />
+		<result property="birthday" column="birthday" />
+		<result property="sex" column="sex" />
+		<result property="address" column="address" />
+		
+		<!-- 
+			配置一对多的映射关系 
+			property;附属表对应的POJO在主表中的POJO的属性名
+		-->
+		<collection property="orders" ofType="cn.itcast.mybatis.pojo.Order">
+			<id column="oid" property="id"/>
+			<result column="number" property="number"/>
+		</collection>
+	</resultMap>
+	
+	<select id="findUserOrderList" resultMap="userOrderResultMap">
+		<!-- 查询SQL语句 -->
+		SELECT
+			u.id,
+			u.username,
+			u.address,
+			u.birthday,
+			u.sex,
+			o.id AS oid,
+			o.number,
+			o.createtime
+		FROM
+			`user` u
+		LEFT JOIN orders o ON u.id = o.user_id
+	</select>
+</mapper>

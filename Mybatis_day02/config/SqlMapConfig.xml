@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!-- SqlMapConfig.xml是mybatis核心配置文件，配置文件内容为数据源、事务管理。 -->
+<configuration>
+	<!-- 使用resource属性加载到外部的properties文件 -->
+	<properties resource="db.properties"> 
+		<!-- 在properties内部用property定义属性 -->
+		<!-- 
+			注意：当外部的properties文件key和内部property标签自定义的属性名一致的话，
+			那么外部的properties文件的key将会覆盖内部的属性
+		-->
+		<property name="jdbc.username" value="root123"/>
+		<property name="jdbc.password" value=""/>
+		<property name="" value=""/>
+		<property name="" value=""/>
+	</properties>
+	
+	<!-- 起别名 -->
+	<typeAliases>
+		<!-- 
+			批量起别名 ；以包扫描的形式
+			name属性；指定包的路径；扫描当前包以及当前包的子包下的所有的plain ordinary java Object
+			默认的别名为POJO对象，不区分大小写；大小写不敏感。
+			
+			配置完成之后，就可以在映射文件中使用别名了，不区分大小写
+			比如：
+				<select id="" parameterType="" resultType="UsEr"></select>
+		-->
+		<package name="cn.itcast.mybatis.pojo"/>
+	</typeAliases>
+	
+	<environments default="development">
+		<environment id="development">
+			<!-- 使用jdbc事务管理 -->
+			<transactionManager type="JDBC"></transactionManager>
+			<!-- 数据库连接池 -->
+			<dataSource type="POOLED">
+				<!-- <property name="driver" value="com.mysql.jdbc.Driver"/> -->
+				<property name="driver" value="${jdbc.driver}"/>
+				<!-- <property name="url" value="jdbc:mysql://localhost:3306/mybatisphase?characterEncoding=utf8&amp;useUnicode=true" /> -->
+				<property name="url" value="${jdbc.url}"/>
+				<!-- &amp;useUnicode=true -->
+				<!-- <property name="username" value="root"/> -->
+				<property name="username" value="${jdbc.username}"/>
+				<!-- <property name="password" value=""/> -->
+				<property name="password" value="${jdbc.password}"/>
+			</dataSource>
+		</environment>
+	</environments>
+	
+	<!-- 加载映射文件 -->
+	<mappers>
+		<!--  
+		<mapper resource="sqlmap/User.xml" />
+		<mapper resource="mapper/UserMapper.xml"/>
+		-->
+		<!-- 
+			引入单个映射文件。通过mapper的class属性
+			条件：Mapper接口和Mapper映射文件必须同包同名
+		 -->
+		<!-- <mapper class="cn.itcast.mybatis.mapper.UserMapper"/> -->
+		<!-- 
+			批量引入映射文件 
+				扫描包形式
+					扫描当前包以及当前包的子包下的所有的Mapper接口
+					条件：Mapper接口和Mapper映射文件必须同包同名
+		-->
+		<!-- 使用包扫描的形式 -->
+		<package name="cn.itcast.mybatis.mapper"/>
+	</mappers>
+</configuration>

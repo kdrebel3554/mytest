@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+	namespace;命名空间；主要是为了隔离SQL；还有一个很重要的作用，后面再将
+	 一个namespace对应一个dao
+-->
+<mapper namespace="test">
+	<!-- ######################################		SELECT标签		############################################ -->
+	<!-- 
+		id;是命名空间中的唯一标识符，
+		parameterType;SQL语句中输入参数的数据类型.可以是int, short, long, string等类型，也可以是复杂类型（如对象）		
+		resultType;用于指定返回值类型，指定的类型可以是基本类型，可以是java容器，也可以是javabean
+		比如：当前返回的是Javabean对象，就要写Javabean对象的权限定路径名称
+	 -->
+	
+	<select id="queryUserById" parameterType="Integer" resultType="cn.itcast.mybatis.pojo.User">
+		<![CDATA[select * from user where id = #{id}]]>
+	</select>
+	
+	 
+	 <!--
+	 	当返回值类型为集合类型时候，那么返回值类型应该集合中每一个元素的数据类型。
+	 	模糊查询情况下的占位符
+	 		使用占位符，需要自己在方法中写%%.比如—— sqlSession.selectList("test.queryUserByUsername","%小%")
+	 -->
+	 <!-- ######################################		SELECT标签模糊查询		############################################ -->
+	<!-- <select id="queryUserByUsername" parameterType="String" resultType="cn.itcast.mybatis.pojo.User">
+		<![CDATA[select * from user where username like #{username}]]>
+	</select> -->
+	
+	<!--
+		使用字符串拼接符号——${};表示拼接SQL字符串，通过${}可以将parameterType传入的内容拼接在SQL中，并且不进行jdbc类型转换
+			(1)当输入参数的类型为基本数据类型时候，那么字符串拼接符号里只能是value
+			(2)当输入参数的类型为POJO对象类型时候，那么字符串拼接符号里POJO对象的属性名，MyBatis框架会自动帮我们从POJO对象中获取属性名的GET方法
+		但是使用使用字符串拼接符号——${}不会进行预编译，不能防止SQL注入等。
+			创建的SQL语句为:Preparing: select * from user where username like '%小%'
+	 -->
+	<!-- <select id="queryUserByUsername" parameterType="String" resultType="cn.itcast.mybatis.pojo.User">
+		<![CDATA[select * from user where username like '%${value}%']]>
+	</select> -->
+	
+	<!-- 使用占位符，并且不用%% -->
+	<select id="queryUserByUsername" parameterType="String" resultType="cn.itcast.mybatis.pojo.User">
+		<![CDATA[SELECT * FROM user WHERE username LIKE "%"#{username}"%"]]>
+	</select>
+	
+	
+	<!-- ######################################		INSERT标签		############################################ -->
+	<!-- 添加用户信息 -->
+	 <!--
+	 	parameterType="cn.itcast.mybatis.pojo.User"
+	 	当输入参数类型是POJO类型时候，那么占位符的值就是写对应的POJO中的属性名称
+	 -->
+	<insert id="addUserInfo" parameterType="cn.itcast.mybatis.pojo.User">
+		<![CDATA[insert into user (username,birthday,sex,address) values (#{username},#{birthday},#{sex},#{address})]]>
+	</insert>
+	
+	<!-- ######################################		UPDATE标签		############################################ -->
+	<!--
+		修改用户信息
+		 
+	 -->
+	<update id="modifyUserInfo" parameterType="cn.itcast.mybatis.pojo.User">
+		<![CDATA[update user set username = #{username},address=#{address} where id = #{id}]]>
+	</update>
+	
+	<!-- ######################################		DELETE标签		############################################ -->
+	<delete id="delUserInfo" parameterType="cn.itcast.mybatis.pojo.User">
+		<![CDATA[delete from user where id = #{id}]]>
+	</delete>
+</mapper>
